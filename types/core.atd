@@ -6,6 +6,7 @@ type namespace_id = string
 type tag_id       = string
 type message_id   = string
 type draft_id     = string
+type file_id      = string
 
 type email = string
 
@@ -14,29 +15,52 @@ type timestamp = int
 (** An annotation that specifies what type of object the returned JSON represents. *)
 type object_type = [
     Thread <json name="thread">
+  | Message <json name="message">
 ]
 
 type participant = {
-  name  : string,
+  name  : string;
   email : email
 }
 
 type tag = {
-  name : string,
+  name : string;
   id   : tag_id
 }
 
 type thread = {
-  id                      : thread_id,
-  object_type             : object_type <json name="object">,
-  namespace_id            : namespace_id,
-  subject                 : string,
-  last_message_timestamp  : timestamp,
-  first_message_timestamp : timestamp,
-  participants            : participant list,
-  snippet                 : string,
-  tags                    : tag list,
-  message_ids             : message_id list, 
+  id                      : thread_id;
+  object_type             : object_type <json name="object">;
+  namespace_id            : namespace_id;
+  subject                 : string;
+  last_message_timestamp  : timestamp;
+  first_message_timestamp : timestamp;
+  participants            : participant list;
+  snippet                 : string;
+  tags                    : tag list;
+  message_ids             : message_id list; 
   draft_ids               : draft_id list
 }
 
+type file = {
+  content_type : string;
+  filename     : string;
+  id           : file_id;
+  size         : int
+}
+
+type message = {
+  id          : message_id;
+  object_type : object_type;
+  subject     : string;
+  from        : participant list;
+  to_         : participant list <json name="to">;
+  cc          : participant list;
+  bcc         : participant list;
+  date        : timestamp;
+  thread_id   : thread_id;
+  files       : file list;
+  snippet     : string;
+  body        : string;
+  unread      : bool
+}
