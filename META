@@ -1,0 +1,6 @@
+name = "ocaml-inbox"
+description = "OCaml bindings for the Inbox API."
+version = "0.0.1"
+requires = "atdgen unix"
+archive(byte) = "inbox.cmo"
+archive(native) = "inbox.cmx"
