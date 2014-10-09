@@ -3,10 +3,14 @@
 (* TODO: wrapper types for ids and such *)
 type thread_id    = string
 type namespace_id = string
+type account_id   = string
 type tag_id       = string
 type message_id   = string
 type draft_id     = string
 type file_id      = string
+
+(* TODO: If there is a finite set of providers, turn this into a variant. *)
+type provider = string
 
 type email = string
 
@@ -16,7 +20,17 @@ type timestamp = int
 type object_type = [
     Thread <json name="thread">
   | Message <json name="message">
+  | Namespace <json name="namespace">
 ]
+
+type namespace = {
+  id : namespace_id;
+  object_type : object_type <json name="object">;
+  namespace_id : namespace_id;
+  account_id : account_id;
+  email_address : email;
+  provider : provider
+}
 
 type participant = {
   name  : string;
