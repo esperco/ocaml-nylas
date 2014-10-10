@@ -16,6 +16,14 @@ type email = string
 
 type timestamp = int
 
+(** The object you get when you authenticate, containing the
+    access_token and/or error information. *)
+type authentication_result = {
+  access_token : access_token;
+  error : string;
+  reason : string
+}
+
 (** An annotation that specifies what type of object the returned JSON represents. *)
 type object_type = [
     Thread <json name="thread">

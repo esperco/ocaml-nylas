@@ -4,17 +4,31 @@ open Cohttp_lwt_unix
 
 exception Error_code of Cohttp.Code.status_code
 
-let api_uri = Uri.of_string "https://api.inboxapp.com"
+type app = {
+  api_uri    : string;
+  base_uri   : string;
+  app_id     : string;
+  app_secret : string;
+}
 
-let authentication_uri app_id user_email redirect_uri =
-  let base = Uri.of_string "https://www.inboxapp.com/oauth/authorize" in
-  Uri.add_query_param base [
-    ("client_id", app_id);
+let authentication_uri app user_email redirect_uri =
+  Uri.add_query_param app.base_uri [
+    ("client_id", app.app_id);
     ("response_type", "code");
     ("scope", "email");
     ("login_hint", user_email);
     ("redirect_uri", Uri.to_string redirect_uri)
   ]
+
+let post_authentication_code app code =
+  let uri = Uri.add_query_param app.base_uri [
+      ("client_id", app.app_id);
+      ("client_secret", app.app_secret);
+      ("grant_type", "authorization_code");
+      ("code", code)
+    ]
+  in
+  Client.post uri
 
 let get_string ?access_token uri =
   let uri = match access_token with
