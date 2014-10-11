@@ -30,12 +30,12 @@ let post_authentication_code app code =
   in
   Client.post uri
 
-let get_string ?access_token uri =
+let request_string http_method ?access_token uri =
   let uri = match access_token with
     | Some token -> Uri.add_query_param' uri ("access_token", token)
     | None       -> uri
   in
-  Client.get uri >>= fun (response, body) ->
+  Client.call http_method uri >>= fun (response, body) ->
   match response.Client.Response.status, body with
   | `OK, `Stream body -> Lwt_stream.fold (^) body ""
   | `OK, `Empty       -> return ""
