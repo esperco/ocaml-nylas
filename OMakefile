@@ -1,0 +1,18 @@
+USE_OCAMLFIND = true
+BYTE_ENABLED = true
+OCAMLDEP_MODULES_ENABLED = false
+
+OCAMLFLAGS = -annot -g -warn-error +8+25 -thread
+
+include Atdgen
+
+SUBDIRS[] =
+  # atds
+  types
+
+OCAMLPACKS = atdgen lwt cohttp.lwt
+
+OCAMLINCLUDES = $(absname $(SUBDIRS))
+OCAML_LIBS = core/core
+
+.SUBDIRS: $(SUBDIRS)

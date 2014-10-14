@@ -1,0 +1,5 @@
+include Atdgen
+
+include $(STDROOT)
+
+.SUBDIRS: .

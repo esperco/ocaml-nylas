@@ -1,0 +1,14 @@
+# Produce META files for toplevel use.
+# (just one library per META file)
+#
+# For instance, Meta(foo) creates a target META such that
+#   #require "foo";;
+# loads all the required libraries.
+
+Meta(lib) =
+  META: OMakefile
+    echo 'name = "$(lib)"' > META
+    echo 'version = "[wolverine]"' >> META
+    echo 'requires = "$(OCAMLPACKS) $(basename $(OCAML_LIBS))"' >> META
+    echo 'archive(byte) = "$(lib).cma"' >> META
+    echo 'archive(native) = "$(lib).cmxa"' >> META

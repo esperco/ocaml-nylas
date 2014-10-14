@@ -1,0 +1,12 @@
+FILES[] = 
+  core_t
+  core_j
+
+Atdgen(core, -j-std)
+OCamlLibrary(core, $(FILES))
+
+.DEFAULT: core.cma core.cmxa
+
+.PHONY: clean
+clean:
+  rm -f *.o *.a *.cm* *~ *.annot *.run *.opt
