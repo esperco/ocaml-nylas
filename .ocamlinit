@@ -1,0 +1,4 @@
+#require "cohttp.lwt";;
+#load "inbox/inbox.cma";;
+
+open Inbox;;
