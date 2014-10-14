@@ -1,13 +1,15 @@
 (* Core types for the Inbox API *)
 
 (* TODO: wrapper types for ids and such *)
-type thread_id    = string wrap <ocaml module="Thread_id">
-type namespace_id = string wrap <ocaml module="Namespace_id">
-type account_id   = string wrap <ocaml module="Account_id">
-type tag_id       = string wrap <ocaml module="Tag_id">
-type message_id   = string wrap <ocaml module="Message_id">
-type draft_id     = string wrap <ocaml module="Draft_id">
-type file_id      = string wrap <ocaml module="File_id">
+type thread_id    = string (* wrap <ocaml module="Thread_id"> *)
+type namespace_id = string (* wrap <ocaml module="Namespace_id"> *)
+type account_id   = string (* wrap <ocaml module="Account_id"> *)
+type tag_id       = string (* wrap <ocaml module="Tag_id"> *)
+type message_id   = string (* wrap <ocaml module="Message_id"> *)
+type draft_id     = string (* wrap <ocaml module="Draft_id"> *)
+type file_id      = string (* wrap <ocaml module="File_id"> *)
+
+type access_token = string
 
 (* TODO: If there is a finite set of providers, turn this into a variant. *)
 type provider = string
