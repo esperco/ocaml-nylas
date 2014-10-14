@@ -1,0 +1,10 @@
+FILES[] = 
+  example
+
+OCamlProgram(inbox-example, $(FILES))
+
+.DEFAULT: inbox-example.opt
+
+.PHONY: clean
+clean:
+  rm -f *.o *.a *.cm* *~ *.annot *.run *.opt
