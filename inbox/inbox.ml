@@ -11,8 +11,13 @@ type app = {
   app_secret : string;
 }
 
+(** Default URIs, suitable for hosted Inbox instances. *)
+let api_uri  = Uri.of_string "https://api.inboxapp.com"
+let base_uri = Uri.of_string "https://www.inboxapp.com"
+
 let authentication_uri app user_email redirect_uri =
-  Uri.add_query_params' app.base_uri [
+  let uri = (Uri.with_path app.base_uri "oauth/authorize") in
+  Uri.add_query_params' uri [
     ("client_id", app.app_id);
     ("response_type", "code");
     ("scope", "email");
