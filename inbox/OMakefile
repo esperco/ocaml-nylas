@@ -1,0 +1,10 @@
+FILES[] = 
+  inbox
+
+OCamlLibrary(inbox, $(FILES))
+
+.DEFAULT: inbox.cma inbox.cmxa
+
+.PHONY: clean
+clean:
+  rm -f *.o *.a *.cm* *~ *.annot *.run *.opt

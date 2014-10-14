@@ -9,10 +9,12 @@ include Atdgen
 SUBDIRS[] =
   # atds
   types
+  # actual API calls
+  inbox
 
 OCAMLPACKS = atdgen lwt cohttp.lwt
 
 OCAMLINCLUDES = $(absname $(SUBDIRS))
-OCAML_LIBS = core/core
 
 .SUBDIRS: $(SUBDIRS)
+
