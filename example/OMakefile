@@ -1,5 +1,8 @@
 FILES[] = 
   example
+  app_config
+
+OCAML_LIBS = ../inbox/inbox
 
 OCamlProgram(inbox-example, $(FILES))
 
