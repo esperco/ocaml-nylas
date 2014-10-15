@@ -1,6 +1,8 @@
 FILES[] = 
   inbox
 
+OCAML_LIBS = ../types/core
+
 OCamlLibrary(inbox, $(FILES))
 
 .DEFAULT: inbox.cma inbox.cmxa

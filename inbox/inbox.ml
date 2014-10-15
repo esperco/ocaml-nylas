@@ -15,6 +15,8 @@ type app = {
 let api_uri  = Uri.of_string "https://api.inboxapp.com"
 let base_uri = Uri.of_string "https://www.inboxapp.com"
 
+let api_path { api_uri } path = Uri.with_path api_uri path
+
 let authentication_uri app user_email redirect_uri =
   let uri = Uri.with_path app.base_uri "oauth/authorize" in
   Uri.add_query_params' uri [
@@ -47,8 +49,10 @@ let post_authentication_code app code =
       ("code", code)
     ]
   in
-  call_string `POST uri
+  call_string `POST uri >>= fun body ->
+  Lwt.return (Core_j.authentication_result_of_string body)
 
-let get_namespaces () = call_string `GET (Uri.of_string "https://api.inbox.com/n")
+let get_namespaces ?access_token app =
+  call_string ?access_token `GET (api_path app "/n")
 
 let get_namespace id = failwith "undefined"

@@ -3,6 +3,7 @@ BYTE_ENABLED = true
 OCAMLDEP_MODULES_ENABLED = false
 
 OCAMLFLAGS = -annot -g -warn-error +8+25 -thread
+OCAMLPACKS = atdgen yojson lwt cohttp.lwt
 
 include Atdgen
 
@@ -14,9 +15,12 @@ SUBDIRS[] =
   # a small example server for authentication
   example
 
-OCAMLPACKS = atdgen lwt cohttp.lwt
-
 OCAMLINCLUDES = $(absname $(SUBDIRS))
 
 .SUBDIRS: $(SUBDIRS)
 
+.PHONY: install uninstall reinstall
+install:
+  ocamlfind install ocaml-inbox META */*.{mli,cmi,cmo,cmx,o,cma,cmxa,a}
+uninstall:
+  ocamlfind remove ocaml-inbox

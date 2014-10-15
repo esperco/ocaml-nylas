@@ -19,8 +19,8 @@ let callback conn { Request.uri } body =
   match Uri.get_query_param uri "code" with
   | None      -> respond_string ~status:`OK ~body:("Not authorized!\n No code returned.") ()
   | Some code ->
-     Inbox.post_authentication_code app code >>= fun token -> 
-     respond_string ~status:`OK ~body:(sprintf "Authorized! Response: %s." token) ()
+     Inbox.post_authentication_code app code >>= fun { Core_j.access_token } -> 
+     respond_string ~status:`OK ~body:(sprintf "Authorized! Response: %s." access_token) ()
 
 let conn_closed _ () = printf "Connection closed\n!"
          
