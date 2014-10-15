@@ -37,14 +37,14 @@ let call_string http_method ?access_token uri =
   | err, `Stream body -> Lwt_stream.fold (^) body ""
   | err, _            -> raise (Error_code err)
 
-let post_authentication_code app code redirect_uri =
-  let base = Uri.with_path app.base_uri "oauth/token" in
+let post_authentication_code app code =
+  (* NOTE: The leading slash in /oauth/token is necessary. *)
+  let base = Uri.with_path app.base_uri "/oauth/token" in
   let uri  = Uri.add_query_params' base [
       ("client_id", app.app_id);
       ("client_secret", app.app_secret);
       ("grant_type", "authorization_code");
-      ("code", code);
-      ("redirect_uri", Uri.to_string redirect_uri)
+      ("code", code)
     ]
   in
   call_string `POST uri
