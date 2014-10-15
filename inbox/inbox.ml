@@ -16,7 +16,7 @@ let api_uri  = Uri.of_string "https://api.inboxapp.com"
 let base_uri = Uri.of_string "https://www.inboxapp.com"
 
 let authentication_uri app user_email redirect_uri =
-  let uri = (Uri.with_path app.base_uri "oauth/authorize") in
+  let uri = Uri.with_path app.base_uri "oauth/authorize" in
   Uri.add_query_params' uri [
     ("client_id", app.app_id);
     ("response_type", "code");
@@ -24,16 +24,6 @@ let authentication_uri app user_email redirect_uri =
     ("login_hint", user_email);
     ("redirect_uri", Uri.to_string redirect_uri)
   ]
-
-let post_authentication_code app code =
-  let uri = Uri.add_query_params' app.base_uri [
-      ("client_id", app.app_id);
-      ("client_secret", app.app_secret);
-      ("grant_type", "authorization_code");
-      ("code", code)
-    ]
-  in
-  Client.post uri
 
 let call_string http_method ?access_token uri =
   let uri = match access_token with
@@ -44,7 +34,20 @@ let call_string http_method ?access_token uri =
   match response.Client.Response.status, body with
   | `OK, `Stream body -> Lwt_stream.fold (^) body ""
   | `OK, `Empty       -> return ""
+  | err, `Stream body -> Lwt_stream.fold (^) body ""
   | err, _            -> raise (Error_code err)
+
+let post_authentication_code app code =
+  (* NOTE: The leading slash in /oauth/token is necessary. *)
+  let base = Uri.with_path app.base_uri "/oauth/token" in
+  let uri  = Uri.add_query_params' base [
+      ("client_id", app.app_id);
+      ("client_secret", app.app_secret);
+      ("grant_type", "authorization_code");
+      ("code", code)
+    ]
+  in
+  call_string `POST uri
 
 let get_namespaces () = call_string `GET (Uri.of_string "https://api.inbox.com/n")
 
