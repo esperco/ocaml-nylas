@@ -1,6 +1,9 @@
 open Lwt
+open Cohttp
 open Cohttp.Code
 open Cohttp_lwt_unix
+
+open Nlencoding
 
 exception Error_code of Cohttp.Code.status_code
 
@@ -28,11 +31,15 @@ let authentication_uri app user_email redirect_uri =
   ]
 
 let call_string http_method ?access_token uri =
-  let uri = match access_token with
-    | Some token -> Uri.add_query_param' uri ("access_token", token)
-    | None       -> uri
+  let headers = match access_token with
+    | Some token ->
+       let basic_auth = Base64.encode (token ^ ":") in
+       Printf.printf "Basic auth: %s\n" basic_auth;
+       flush stdout;
+       Header.init_with "Authorization" ("Basic " ^ basic_auth)
+    | None       -> Header.init ()
   in
-  Client.call http_method uri >>= fun (response, body) ->
+  Client.call ~headers http_method uri >>= fun (response, body) ->
   match response.Client.Response.status, body with
   | `OK, `Stream body -> Lwt_stream.fold (^) body ""
   | `OK, `Empty       -> return ""

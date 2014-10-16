@@ -3,7 +3,7 @@ BYTE_ENABLED = true
 OCAMLDEP_MODULES_ENABLED = false
 
 OCAMLFLAGS = -annot -g -warn-error +8+25 -thread
-OCAMLPACKS = atdgen yojson lwt cohttp.lwt
+OCAMLPACKS = atdgen netstring-light yojson lwt cohttp.lwt
 
 include Atdgen
 
