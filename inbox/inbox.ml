@@ -46,6 +46,10 @@ let call_string http_method ?access_token uri =
   | err, `Stream body -> Lwt_stream.fold (^) body ""
   | err, _            -> raise (Error_code err)
 
+let call_parse http_method parse_fn ?access_token uri =
+  call_string ?access_token http_method uri >>= fun body ->
+  Lwt.return (parse_fn body)
+
 let post_authentication_code app code =
   (* NOTE: The leading slash in /oauth/token is necessary. *)
   let base = Uri.with_path app.base_uri "/oauth/token" in
@@ -56,10 +60,9 @@ let post_authentication_code app code =
       ("code", code)
     ]
   in
-  call_string `POST uri >>= fun body ->
-  Lwt.return (Core_j.authentication_result_of_string body)
+  call_parse `POST Core_j.authentication_result_of_string uri
 
 let get_namespaces ?access_token app =
-  call_string ?access_token `GET (api_path app "/n")
+  call_parse ?access_token `GET Core_j.namespace_list_of_string (api_path app "/n")
 
 let get_namespace id = failwith "undefined"

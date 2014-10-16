@@ -42,6 +42,8 @@ type namespace = {
   provider : provider
 }
 
+type namespace_list = namespace list
+
 type participant = {
   name  : string;
   email : email
