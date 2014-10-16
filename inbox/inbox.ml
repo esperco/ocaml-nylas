@@ -76,3 +76,9 @@ let get_calendars ~access_token ~app namespace_id =
 let get_event ~access_token ~app namespace_id event_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/events/" ^ event_id) in
   call_parse ~access_token `GET Core_j.event_of_string uri
+
+let get_events ~access_token ~app namespace_id filters =
+  let uri =
+    Filter.filter filters (api_path app ("/n/" ^ namespace_id ^ "/events"))
+  in
+  call_parse ~access_token `GET Core_j.event_list_of_string uri

@@ -43,6 +43,7 @@ type event_status = [
     Yes <json name="yes">
   | No <json name="no">
   | Maybe <json name="maybe">
+  | NoReply <json name="noreply">
 ]
 
 type namespace = {
@@ -143,3 +144,5 @@ type event = {
   title                    : string;
   when_ <json name="when"> : timespan 
 }
+
+type event_list = event list
