@@ -2,7 +2,7 @@ FILES[] =
   example
   app_config
 
-OCAML_LIBS =  ../types/core ../inbox/inbox
+OCAML_LIBS =  ../types/inbox-core ../inbox/inbox
 
 OCamlProgram(inbox-example, $(FILES))
 

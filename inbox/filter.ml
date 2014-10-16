@@ -1,4 +1,4 @@
-open Core_t
+open Inbox_t
 
 (** Filters for retrieving multiple events. *)
 type event = [

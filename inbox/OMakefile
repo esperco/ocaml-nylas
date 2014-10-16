@@ -2,7 +2,7 @@ FILES[] =
   inbox
   filter
 
-OCAML_LIBS = ../types/core
+OCAML_LIBS = ../types/inbox-core
 
 OCamlLibrary(inbox, $(FILES))
 

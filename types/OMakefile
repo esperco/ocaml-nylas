@@ -1,11 +1,11 @@
 FILES[] = 
-  core_t
-  core_j
+  inbox_t
+  inbox_j
 
-Atdgen(core, -j-std)
-OCamlLibrary(core, $(FILES))
+Atdgen(inbox, -j-std)
+OCamlLibrary(inbox-core, $(FILES))
 
-.DEFAULT: core.cma core.cmxa
+.DEFAULT: inbox-core.cma inbox-core.cmxa
 
 .PHONY: clean
 clean:
