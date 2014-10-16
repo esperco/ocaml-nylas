@@ -62,7 +62,17 @@ let post_authentication_code app code =
   in
   call_parse `POST Core_j.authentication_result_of_string uri
 
-let get_namespaces ?access_token app =
-  call_parse ?access_token `GET Core_j.namespace_list_of_string (api_path app "/n")
+let get_namespaces ~access_token ~app =
+  call_parse ~access_token `GET Core_j.namespace_list_of_string (api_path app "/n")
 
-let get_namespace id = failwith "undefined"
+let get_namespace ~access_token ~app id  =
+  let uri = api_path app ("/n/" ^ id) in
+  call_parse ~access_token `GET Core_j.namespace_of_string uri
+
+let get_calendars ~access_token ~app namespace_id =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/calendars") in
+  call_parse ~access_token `GET Core_j.calendar_list_of_string uri
+
+let get_event ~access_token ~app namespace_id event_id =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/events/" ^ event_id) in
+  call_parse ~access_token `GET Core_j.event_of_string uri
