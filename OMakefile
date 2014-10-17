@@ -12,8 +12,6 @@ SUBDIRS[] =
   types
   # actual API calls
   inbox
-  # a small example server for authentication
-  example
 
 OCAMLINCLUDES = $(absname $(SUBDIRS))
 
