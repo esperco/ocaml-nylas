@@ -3,16 +3,11 @@ open Cohttp
 open Cohttp.Code
 open Cohttp_lwt_unix
 
+open Inbox_app
+
 open Nlencoding
 
 exception Error_code of Cohttp.Code.status_code
-
-type app = {
-  api_uri    : Uri.t;
-  base_uri   : Uri.t;
-  app_id     : string;
-  app_secret : string;
-}
 
 (** Default URIs, suitable for hosted Inbox instances. *)
 let api_uri  = Uri.of_string "https://api.inboxapp.com"
