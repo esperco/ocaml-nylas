@@ -68,6 +68,10 @@ let get_calendars ~access_token ~app namespace_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/calendars") in
   call_parse ~access_token `GET Inbox_j.calendar_list_of_string uri
 
+let get_calendar ~access_token ~app namespace_id calendar_id=
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/calendars/" ^ calendar_id) in
+  call_parse ~access_token `GET Inbox_j.calendar_of_string uri
+
 let get_event ~access_token ~app namespace_id event_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/events/" ^ event_id) in
   call_parse ~access_token `GET Inbox_j.event_of_string uri
