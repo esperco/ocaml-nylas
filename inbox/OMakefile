@@ -1,5 +1,6 @@
 FILES[] = 
   inbox
+  inbox_app
   filter
 
 OCAML_LIBS = ../types/inbox-core

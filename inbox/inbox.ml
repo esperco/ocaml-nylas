@@ -64,6 +64,11 @@ let get_namespace ~access_token ~app id  =
   let uri = api_path app ("/n/" ^ id) in
   call_parse ~access_token `GET Inbox_j.namespace_of_string uri
 
+
+(* Email APIs *)
+
+
+(* Calendar APIs *)
 let get_calendars ~access_token ~app namespace_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/calendars") in
   call_parse ~access_token `GET Inbox_j.calendar_list_of_string uri
@@ -78,6 +83,6 @@ let get_event ~access_token ~app namespace_id event_id =
 
 let get_events ~access_token ~app namespace_id filters =
   let uri =
-    Filter.filter filters (api_path app ("/n/" ^ namespace_id ^ "/events"))
+    Filter.add_query filters (api_path app ("/n/" ^ namespace_id ^ "/events"))
   in
   call_parse ~access_token `GET Inbox_j.event_list_of_string uri
