@@ -25,25 +25,28 @@ let authentication_uri app user_email redirect_uri =
     ("redirect_uri", Uri.to_string redirect_uri)
   ]
 
-let call_string http_method ?access_token uri =
+let call_string http_method ?access_token ?body uri =
   let headers = match access_token with
     | Some token ->
        let basic_auth = Base64.encode (token ^ ":") in
-       Printf.printf "Basic auth: %s\n" basic_auth;
        flush stdout;
        Header.init_with "Authorization" ("Basic " ^ basic_auth)
     | None       -> Header.init ()
   in
-  Client.call ~headers http_method uri >>= fun (response, body) ->
+  Client.call ~headers ?body http_method uri >>= fun (response, body) ->
   match response.Client.Response.status, body with
   | `OK, `Stream body -> Lwt_stream.fold (^) body ""
   | `OK, `Empty       -> return ""
   | err, `Stream body -> Lwt_stream.fold (^) body ""
   | err, _            -> raise (Error_code err)
 
-let call_parse http_method parse_fn ?access_token uri =
-  call_string ?access_token http_method uri >>= fun body ->
-  Lwt.return (parse_fn body)
+let call_parse http_method parse_fn ?access_token ?body uri =
+  let body = match body with
+    | None      -> None
+    | Some body -> Some (Cohttp_lwt_body.of_string body)
+  in
+  call_string ?access_token ?body http_method uri >>= fun response ->
+  Lwt.return (parse_fn response)
 
 let post_authentication_code app code =
   (* NOTE: The leading slash in /oauth/token is necessary. *)
@@ -66,7 +69,11 @@ let get_namespace ~access_token ~app id  =
 
 
 (* Email APIs *)
-
+(** Sends a message, creating a new thread. *)
+let send_new_message ~access_token ~app namespace_id message =
+  let body = Inbox_j.string_of_message message in
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/send") in
+  call_parse ~access_token ~body `POST Inbox_j.message_of_string uri
 
 (* Calendar APIs *)
 let get_calendars ~access_token ~app namespace_id =
