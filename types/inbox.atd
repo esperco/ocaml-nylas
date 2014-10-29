@@ -14,6 +14,8 @@ type event_participant_id = string
 
 type access_token = string
 
+type draft_version = string
+
 (* TODO: If there is a finite set of providers, turn this into a variant. *)
 type provider = string
 
@@ -33,10 +35,12 @@ type authentication_result = {
 type object_type = [
     Thread <json name="thread">
   | Message <json name="message">
+  | Draft <json name="draft">
   | Namespace <json name="namespace">
   | Calendar <json name="calendar">
   | Event <json name="event">
   | Timespan <json name="timespan">
+  | File <json name="file">
 ]
 
 type event_status = [
@@ -47,13 +51,13 @@ type event_status = [
 ]
 
 type namespace = {
-  id                       : namespace_id;
-  obj <json name="object"> : object_type;
-  namespace_id             : namespace_id;
-  account_id               : account_id;
-  email_address            : email;
-  provider                 : provider;
-  name                     : string
+  id                        : namespace_id;
+  ?obj <json name="object"> : object_type option;
+  namespace_id              : namespace_id;
+  account_id                : account_id;
+  email_address             : email;
+  provider                  : provider;
+  name                      : string
 }
 
 type namespace_list = namespace list
@@ -69,51 +73,63 @@ type tag = {
 }
 
 type thread = {
-  id                       : thread_id;
-  obj <json name="object"> : object_type;
-  namespace_id             : namespace_id;
-  subject                  : string;
-  last_message_timestamp   : timestamp;
-  first_message_timestamp  : timestamp;
-  participants             : participant list;
-  snippet                  : string;
-  tags                     : tag list;
-  message_ids              : message_id list; 
-  draft_ids                : draft_id list
+  id                        : thread_id;
+  ?obj <json name="object"> : object_type option;
+  namespace_id              : namespace_id;
+  subject                   : string;
+  last_message_timestamp    : timestamp;
+  first_message_timestamp   : timestamp;
+  participants              : participant list;
+  snippet                   : string;
+  tags                      : tag list;
+  message_ids               : message_id list; 
+  draft_ids                 : draft_id list
 }
 
 type file = {
-  content_type : string;
-  filename     : string;
-  id           : file_id;
-  size         : int
+  ?obj <json name="object"> : object_type option;
+  content_type              : string;
+  ~filename                 : string;
+  ?id                       : file_id option;
+  size                      : int
 }
 
 type message = {
-  id                       : message_id;
-  obj <json name="object"> : object_type;
-  subject                  : string;
-  from                     : participant list;
-  to_ <json name="to">     : participant list;
-  cc                       : participant list;
-  bcc                      : participant list;
-  date                     : timestamp;
-  thread_id                : thread_id;
-  files                    : file list;
-  snippet                  : string;
-  body                     : string;
-  unread                   : bool
+  id                        : message_id;
+  ?obj <json name="object"> : object_type option;
+  subject                   : string;
+  from                      : participant list;
+  to_ <json name="to">      : participant list;
+  cc                        : participant list;
+  bcc                       : participant list;
+  date                      : timestamp;
+  thread_id                 : thread_id;
+  files                     : file list;
+  snippet                   : string;
+  body                      : string;
+  unread                    : bool
+}
+
+(** An object that specifies a message to create or update---it has no id. *)
+type message_edit = {
+  ~subject              : string;
+  ~to_ <json name="to"> : participant list;
+  ~cc                   : participant list;
+  ~bcc                  : participant list;
+  ~body                 : string;
+  ~file_ids             : file_id list;
+  ?version              : draft_version option
 }
 
 type calendar = {
-  ?description             : string option;
-  event_ids                : event_id list;
-  id                       : calendar_id;
-  name                     : string;
-  (* TODO: Figure out why this is "namespace" and not "namespace_id". *)
-  namespace                : namespace_id;
-  obj <json name="object"> : object_type;
-  read_only                : bool
+  ?description              : string option;
+  event_ids                 : event_id list;
+  id                        : calendar_id;
+  name                      : string;
+  (* TODO                   : Figure out why this is "namespace" and not "namespace_id". *)
+  namespace                 : namespace_id;
+  ?obj <json name="object"> : object_type option;
+  read_only                 : bool
 }
 
 type calendar_list = calendar list
@@ -126,23 +142,23 @@ type event_participant = {
 } 
 
 type timespan = {
-  obj <json name="object"> : object_type;
-  (* TODO: Use a specific time type. *)
-  start_time : int;
-  end_time : int;
+  ?obj <json name="object"> : object_type option;
+  (* TODO                   : Use a specific time type. *)
+  start_time                : int;
+  end_time                  : int;
 }
 
 type event = {
-  obj <json name="object"> : object_type;
-  id                       : event_id;
-  calendar_id              : calendar_id;
-  namespace_id             : namespace_id;
-  ?description             : string option;
-  ?location                : string option;
-  participants             : event_participant list;
-  read_only                : bool;
-  title                    : string;
-  when_ <json name="when"> : timespan 
+  ?obj <json name="object"> : object_type option;
+  id                        : event_id;
+  calendar_id               : calendar_id;
+  namespace_id              : namespace_id;
+  ?description              : string option;
+  ?location                 : string option;
+  participants              : event_participant list;
+  read_only                 : bool;
+  title                     : string;
+  when_ <json name="when">  : timespan 
 }
 
 type event_list = event list

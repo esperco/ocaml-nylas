@@ -2,6 +2,7 @@ FILES[] =
   inbox
   inbox_app
   filter
+  multipart
 
 OCAML_LIBS = ../types/inbox-core
 

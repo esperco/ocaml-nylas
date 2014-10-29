@@ -25,14 +25,14 @@ let authentication_uri app user_email redirect_uri =
     ("redirect_uri", Uri.to_string redirect_uri)
   ]
 
-let call_string http_method ?access_token ?body uri =
+let call_string http_method ?access_token ?headers ?body uri =
+  let headers = match headers with | Some h -> h | None -> [] in
   let headers = match access_token with
     | Some token ->
-       let basic_auth = Base64.encode (token ^ ":") in
-       flush stdout;
-       Header.init_with "Authorization" ("Basic " ^ basic_auth)
-    | None       -> Header.init ()
+       ("Authorization", ("Basic " ^ Base64.encode (token ^ ":")))::headers
+    | None       -> headers
   in
+  let headers = Header.of_list headers in 
   Client.call ~headers ?body http_method uri >>= fun (response, body) ->
   match response.Client.Response.status, body with
   | `OK, `Stream body -> Lwt_stream.fold (^) body ""
@@ -40,12 +40,12 @@ let call_string http_method ?access_token ?body uri =
   | err, `Stream body -> Lwt_stream.fold (^) body ""
   | err, _            -> raise (Error_code err)
 
-let call_parse http_method parse_fn ?access_token ?body uri =
+let call_parse http_method parse_fn ?access_token ?headers ?body uri =
   let body = match body with
     | None      -> None
     | Some body -> Some (Cohttp_lwt_body.of_string body)
   in
-  call_string ?access_token ?body http_method uri >>= fun response ->
+  call_string ?access_token ?headers ?body http_method uri >>= fun response ->
   Lwt.return (parse_fn response)
 
 let post_authentication_code app code =
@@ -71,10 +71,35 @@ let get_namespace ~access_token ~app id  =
 (* Email APIs *)
 (** Sends a message, creating a new thread. *)
 let send_new_message ~access_token ~app namespace_id message =
-  let body = Inbox_j.string_of_message message in
+  let body = Inbox_j.string_of_message_edit message in
   let uri = api_path app ("/n/" ^ namespace_id ^ "/send") in
   call_parse ~access_token ~body `POST Inbox_j.message_of_string uri
 
+let create_draft ~access_token ~app namespace_id message =
+  let body = Inbox_j.string_of_message_edit message in
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts") in
+  call_parse ~access_token ~body `POST Inbox_j.message_of_string uri
+
+(** Takes Inbox file metadata and produces a "part" for a multipart
+ *  request that contains the necessary Content-Disposition and
+ *  Content-Type headers.
+ *)
+let part_of_file content_type filename content =
+  {
+    Multipart.headers = [
+      ("Content-Disposition",
+       "form-data; name=\"file\"; filename=\"" ^ filename ^ "\"");
+      ("Content-Type", content_type)
+    ];
+    body = content
+  }
+
+let upload_file ~access_token ~app namespace_id content_type filename content =
+  let file_part = part_of_file content_type filename content in
+  let (header, body) = Multipart.request_of_parts "from-data" [file_part] in
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/files") in
+  call_parse ~access_token ~headers:[header] ~body `POST Inbox_j.file_of_string uri
+        
 (* Calendar APIs *)
 let get_calendars ~access_token ~app namespace_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/calendars") in
