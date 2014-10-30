@@ -11,21 +11,21 @@
 Random.self_init ();;
 
 (** For simplicity (ie, no need to quote), a boundary is a
- *  70-character random string of lowercase letters and numbers.
+ *  60-character random string of lowercase letters and numbers.
  *)
 let generate_boundary () =
   let random () = match Random.int 36 with
     | x when x < 26 -> int_of_char 'a' + x
     | x             -> x - 26 + int_of_char '0'
   in
-  String.map (fun _ -> char_of_int (random ())) (String.make 70 ' ')
+  String.map (fun _ -> char_of_int (random ())) (String.make 60 ' ')
 
 (** Returns the header entry with the given boundary and multipart
   * subtype. Valid subtypes include "mixed", "alternate", "form-data"
   * and others.
   *)
 let header sub_type boundary =
-  ("Content-Type", "multipart/" ^ sub_type ^ "; boundary=" ^ boundary)
+  ("Content-Type", "multipart/" ^ sub_type ^ "; boundary=\"" ^ boundary ^ "\"")
 
 type part = {
   headers : (string * string) list;
@@ -37,7 +37,7 @@ let combine_requests boundary parts =
   let combine body part =
     let append a (h, v) = a ^ "\n" ^ h ^ ": " ^ v in
     let headers = List.fold_left append "" part.headers ^ "\n" in
-    body ^ "\n--" ^ boundary ^ "\n" ^ headers ^ part.body ^ "\n"
+    body ^ "\n--" ^ boundary ^ headers ^ "\n" ^ part.body
   in
   List.fold_left combine "" parts ^ "\n--" ^ boundary ^ "--"
 

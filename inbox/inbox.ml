@@ -37,7 +37,7 @@ let call_string http_method ?access_token ?headers ?body uri =
   match response.Client.Response.status, body with
   | `OK, `Stream body -> Lwt_stream.fold (^) body ""
   | `OK, `Empty       -> return ""
-  | err, `Stream body -> Lwt_stream.fold (^) body ""
+  | err, `Stream body -> raise (Error_code err)
   | err, _            -> raise (Error_code err)
 
 let call_parse http_method parse_fn ?access_token ?headers ?body uri =
@@ -80,6 +80,14 @@ let create_draft ~access_token ~app namespace_id message =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts") in
   call_parse ~access_token ~body `POST Inbox_j.message_of_string uri
 
+
+(* Files *)
+let get_files ~access_token ~app namespace_id filters =
+  let uri =
+    Filter.add_query filters (api_path app ("/n/" ^ namespace_id ^ "/files"))
+  in
+  call_parse ~access_token `GET Inbox_j.file_list_of_string uri
+
 (** Takes Inbox file metadata and produces a "part" for a multipart
  *  request that contains the necessary Content-Disposition and
  *  Content-Type headers.
@@ -96,10 +104,17 @@ let part_of_file content_type filename content =
 
 let upload_file ~access_token ~app namespace_id content_type filename content =
   let file_part = part_of_file content_type filename content in
-  let (header, body) = Multipart.request_of_parts "from-data" [file_part] in
+  let (header, body) = Multipart.request_of_parts "form-data" [file_part] in
+  let headers = [
+      ("Accept-Encoding", "gzip, deflate");
+      header;
+      ("Content-Length", string_of_int (String.length body));
+  ]
+  in
   let uri = api_path app ("/n/" ^ namespace_id ^ "/files") in
-  call_parse ~access_token ~headers:[header] ~body `POST Inbox_j.file_of_string uri
-        
+  (* (headers, body) *)
+  call_parse ~access_token ~headers ~body `POST (fun x -> x) uri
+
 (* Calendar APIs *)
 let get_calendars ~access_token ~app namespace_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/calendars") in
