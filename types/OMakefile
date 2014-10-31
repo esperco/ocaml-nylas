@@ -1,6 +1,7 @@
 FILES[] = 
   inbox_t
   inbox_j
+  inbox_v
 
 Atdgen(inbox, -j-std)
 OCamlLibrary(inbox-core, $(FILES))

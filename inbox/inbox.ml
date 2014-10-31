@@ -3,6 +3,8 @@ open Cohttp
 open Cohttp.Code
 open Cohttp_lwt_unix
 
+open Inbox_t
+
 open Inbox_app
 
 open Nlencoding
@@ -37,7 +39,7 @@ let call_string http_method ?access_token ?headers ?body uri =
   match response.Client.Response.status, body with
   | `OK, `Stream body -> Lwt_stream.fold (^) body ""
   | `OK, `Empty       -> return ""
-  | err, `Stream body -> raise (Error_code err)
+  | err, `Stream body -> Lwt_stream.fold (^) body ""
   | err, _            -> raise (Error_code err)
 
 let call_parse http_method parse_fn ?access_token ?headers ?body uri =
@@ -75,11 +77,36 @@ let send_new_message ~access_token ~app namespace_id message =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/send") in
   call_parse ~access_token ~body `POST Inbox_j.message_of_string uri
 
+(* Drafts *)
+let get_drafts ~access_token ~app namespace_id =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts") in
+  call_parse ~access_token `GET Inbox_j.draft_list_of_string uri
+
+let get_draft ~access_token ~app namespace_id draft_id =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts/" ^ draft_id) in
+  call_parse ~access_token `GET Inbox_j.draft_of_string uri
+  
 let create_draft ~access_token ~app namespace_id message =
   let body = Inbox_j.string_of_message_edit message in
   let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts") in
-  call_parse ~access_token ~body `POST Inbox_j.message_of_string uri
+  call_parse ~access_token ~body `POST Inbox_j.draft_of_string uri
 
+(** Updates the *latest version* of the given file. *)
+let update_draft ~access_token ~app namespace_id draft_id draft_edit =
+  get_draft ~access_token ~app namespace_id draft_id >>= fun { dr_version } ->
+  let draft_edit = { draft_edit with de_version = Some dr_version } in
+  let body = Inbox_j.string_of_draft_edit draft_edit in
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts/" ^ draft_id) in
+  call_parse ~access_token ~body `PUT Inbox_j.draft_of_string uri
+
+let send_draft ~access_token ~app namespace_id draft =
+  let body = Inbox_j.string_of_draft_send {
+    ds_draft_id = draft.dr_id;
+    ds_version  = draft.dr_version
+  }
+  in
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/send") in
+  call_parse ~access_token ~body `POST Inbox_j.draft_of_string uri
 
 (* Files *)
 let get_files ~access_token ~app namespace_id filters =
@@ -111,6 +138,14 @@ let upload_file ~access_token ~app namespace_id content_type filename content =
   in
   let uri = api_path app ("/n/" ^ namespace_id ^ "/files/") in
   call_parse ~access_token ~headers ~body `POST Inbox_j.file_list_of_string uri
+
+let attach_file ~access_token ~app namespace_id file_id draft_id =
+  get_draft ~access_token ~app namespace_id draft_id >>= fun { dr_files } ->
+  let file_ids = List.map (fun { fi_id } -> fi_id) dr_files in
+  let draft_edit =
+    Inbox_v.create_draft_edit ~de_file_ids:(file_id::file_ids) ()
+  in
+  update_draft ~access_token ~app namespace_id draft_id draft_edit
 
 (* Calendar APIs *)
 let get_calendars ~access_token ~app namespace_id =

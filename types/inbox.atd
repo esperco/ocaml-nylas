@@ -14,8 +14,6 @@ type event_participant_id = string
 
 type access_token = string
 
-type draft_version = string
-
 (* TODO: If there is a finite set of providers, turn this into a variant. *)
 type provider = string
 
@@ -48,6 +46,14 @@ type event_status = [
   | No <json name="no">
   | Maybe <json name="maybe">
   | NoReply <json name="noreply">
+]
+
+type draft_version = string
+
+type draft_state = [
+    Draft <json name="draft">
+  | Sending <json name="sending">
+  | Sent <json name="sent">
 ]
 
 type namespace = {
@@ -90,27 +96,27 @@ type file = {
   ?obj <json name="object"> : object_type option;
   ?content_type             : string option;
   ~filename                 : string;
-  ?id                       : file_id option;
+  id                        : file_id;
   ?size                     : int option
-}
+} <ocaml field_prefix="fi_">
 
 type file_list = file list
 
 type message = {
   id                        : message_id;
   ?obj <json name="object"> : object_type option;
-  subject                   : string;
-  from                      : participant list;
-  to_ <json name="to">      : participant list;
-  cc                        : participant list;
-  bcc                       : participant list;
+  ~subject                  : string;
+  ~from                     : participant list;
+  ~to_ <json name="to">     : participant list;
+  ~cc                       : participant list;
+  ~bcc                      : participant list;
   date                      : timestamp;
   thread_id                 : thread_id;
-  files                     : file list;
-  snippet                   : string;
-  body                      : string;
-  unread                    : bool
-}
+  ~files                    : file list;
+  ~snippet                  : string;
+  ~body                     : string;
+  ~unread                   : bool
+} <ocaml field_prefix="ms_">
 
 (** An object that specifies a message to create or update---it has no id. *)
 type message_edit = {
@@ -120,26 +126,68 @@ type message_edit = {
   ~bcc                  : participant list;
   ~body                 : string;
   ~file_ids             : file_id list;
-  ?version              : draft_version option
-}
+} <ocaml field_prefix="me_">
+
+type draft = {
+  id                        : draft_id;
+  ?obj <json name="object"> : object_type option;
+  ~subject                  : string;
+  ~from                     : participant list;
+  ~to_ <json name="to">     : participant list;
+  ~cc                       : participant list;
+  ~bcc                      : participant list;
+  date                      : timestamp;
+  thread_id                 : thread_id;
+  ~files                    : file list;
+  ~snippet                  : string;
+  ~body                     : string;
+  ~unread                   : bool;
+
+  (* draft-specific fields *)
+  version                   : draft_version;
+  ?state                     : draft_state option;
+} <ocaml field_prefix="dr_">
+
+type draft_list = draft list
+
+type draft_edit = {
+  ?subject              : string option;
+  ~from                 : participant list;
+  ~to_ <json name="to"> : participant list;
+  ~cc                   : participant list;
+  ~bcc                  : participant list;
+  ~file_ids             : file_id list;
+  ?snippet              : string option;
+  ?body                 : string option;
+  ?unread               : bool option;
+  ?version              : draft_version option;
+} <ocaml field_prefix="de_">
+
+(** A command to send a draft, comprised of the idea nd version to
+ *  send.
+ *)
+type draft_send = {
+  draft_id : draft_id;  
+  version  : draft_version;
+} <ocaml field_prefix="ds_">
 
 type calendar = {
   ?description              : string option;
   event_ids                 : event_id list;
   id                        : calendar_id;
   name                      : string;
-  (* TODO                   : Figure out why this is "namespace" and not "namespace_id". *)
+  (* TODO: Figure out why this is "namespace" and not "namespace_id". *)
   namespace                 : namespace_id;
   ?obj <json name="object"> : object_type option;
   read_only                 : bool
-}
+} <ocaml field_prefix="ca">
 
 type calendar_list = calendar list
 
 type event_participant = {
-  email : email;
-  id : event_participant_id;
-  name : string;
+  email  : email;
+  id     : event_participant_id;
+  name   : string;
   status : event_status
 } 
 
