@@ -88,10 +88,10 @@ type thread = {
 
 type file = {
   ?obj <json name="object"> : object_type option;
-  content_type              : string;
+  ?content_type             : string option;
   ~filename                 : string;
   ?id                       : file_id option;
-  size                      : int
+  ?size                     : int option
 }
 
 type file_list = file list
