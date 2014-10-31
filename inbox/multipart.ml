@@ -18,14 +18,14 @@ let generate_boundary () =
     | x when x < 26 -> int_of_char 'a' + x
     | x             -> x - 26 + int_of_char '0'
   in
-  String.map (fun _ -> char_of_int (random ())) (String.make 60 ' ')
+  String.map (fun _ -> char_of_int (random ())) (String.make 40 ' ')
 
 (** Returns the header entry with the given boundary and multipart
   * subtype. Valid subtypes include "mixed", "alternate", "form-data"
   * and others.
   *)
 let header sub_type boundary =
-  ("Content-Type", "multipart/" ^ sub_type ^ "; boundary=\"" ^ boundary ^ "\"")
+  ("Content-Type", "multipart/" ^ sub_type ^ "; boundary=" ^ boundary)
 
 type part = {
   headers : (string * string) list;

@@ -96,8 +96,8 @@ let part_of_file content_type filename content =
   {
     Multipart.headers = [
       ("Content-Disposition",
-       "form-data; name=\"file\"; filename=\"" ^ filename ^ "\"");
-      ("Content-Type", content_type)
+       "form-data; name=\"" ^ filename ^ "\"; filename=\"" ^ filename ^ "\"")
+      (* ("Content-Type", content_type) *)
     ];
     body = content
   }
@@ -106,12 +106,11 @@ let upload_file ~access_token ~app namespace_id content_type filename content =
   let file_part = part_of_file content_type filename content in
   let (header, body) = Multipart.request_of_parts "form-data" [file_part] in
   let headers = [
-      ("Accept-Encoding", "gzip, deflate");
+      (* ("Content-Length", string_of_int (String.length body + 6)); *)
       header;
-      ("Content-Length", string_of_int (String.length body));
   ]
   in
-  let uri = api_path app ("/n/" ^ namespace_id ^ "/files") in
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/files/") in
   (* (headers, body) *)
   call_parse ~access_token ~headers ~body `POST (fun x -> x) uri
 
