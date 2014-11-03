@@ -180,7 +180,7 @@ type calendar = {
   namespace                 : namespace_id;
   ?obj <json name="object"> : object_type option;
   read_only                 : bool
-} <ocaml field_prefix="ca">
+} <ocaml field_prefix="ca_">
 
 type calendar_list = calendar list
 
