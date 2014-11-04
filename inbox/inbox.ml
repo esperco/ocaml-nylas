@@ -71,6 +71,32 @@ let get_namespace ~access_token ~app id  =
 
 
 (* Email APIs *)
+
+(* Threads *)
+let get_threads ~access_token ~app namespace_id filters =
+  let uri =
+    Filter.add_query filters (api_path app ("/n/" ^ namespace_id ^ "/threads"))
+  in
+  call_parse ~access_token `GET Inbox_j.thread_list_of_string uri
+
+let get_thread ~access_token ~app namespace_id thread_id =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/threads/" ^ thread_id) in
+  call_parse ~access_token `GET Inbox_j.thread_of_string uri
+
+(* Message *)
+let get_messages ~access_token ~app namespace_id filters =
+  let uri =
+    Filter.add_query filters (api_path app ("/n/" ^ namespace_id ^ "/messages"))
+  in
+  call_parse ~access_token `GET Inbox_j.message_list_of_string uri
+
+let get_message ~access_token ~app namespace_id message_id =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/messages/" ^ message_id) in
+  call_parse ~access_token `GET Inbox_j.message_of_string uri
+
+let get_thread_messages ~access_token ~app namespace_id thread =
+  get_messages ~access_token ~app namespace_id [`Thread_id thread.tr_id]
+
 (** Sends a message, creating a new thread. *)
 let send_new_message ~access_token ~app namespace_id message =
   let body = Inbox_j.string_of_message_edit message in
