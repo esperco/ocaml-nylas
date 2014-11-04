@@ -64,19 +64,19 @@ type namespace = {
   email_address             : email;
   provider                  : provider;
   name                      : string
-}
+} <ocaml field_prefix="ns_">
 
 type namespace_list = namespace list
 
 type participant = {
   name  : string;
   email : email
-}
+} <ocaml field_prefix="pa_">
 
 type tag = {
   name : string;
   id   : tag_id
-}
+} <ocaml field_prefix="ta_">
 
 type thread = {
   id                        : thread_id;
@@ -90,7 +90,9 @@ type thread = {
   tags                      : tag list;
   message_ids               : message_id list; 
   draft_ids                 : draft_id list
-}
+} <ocaml field_prefix="tr_">
+
+type thread_list = thread list
 
 type file = {
   ?obj <json name="object"> : object_type option;
@@ -117,6 +119,8 @@ type message = {
   ~body                     : string;
   ~unread                   : bool
 } <ocaml field_prefix="ms_">
+
+type message_list = message list
 
 (** An object that specifies a message to create or update---it has no id. *)
 type message_edit = {
@@ -189,14 +193,14 @@ type event_participant = {
   id     : event_participant_id;
   name   : string;
   status : event_status
-} 
+} <ocaml field_prefix="ep_">
 
 type timespan = {
   ?obj <json name="object"> : object_type option;
   (* TODO                   : Use a specific time type. *)
   start_time                : int;
   end_time                  : int;
-}
+} <ocaml field_prefix="ts_">
 
 type event = {
   ?obj <json name="object"> : object_type option;
@@ -209,6 +213,6 @@ type event = {
   read_only                 : bool;
   title                     : string;
   when_ <json name="when">  : timespan 
-}
+} <ocaml field_prefix="ev_">
 
 type event_list = event list
