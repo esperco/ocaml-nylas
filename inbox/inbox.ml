@@ -147,6 +147,15 @@ let attach_file ~access_token ~app namespace_id file_id draft_id =
   in
   update_draft ~access_token ~app namespace_id draft_id draft_edit
 
+(* TODO: Better error handling. *)
+let send_with_file ~access_token ~app namespace_id message content_type filename content =
+  create_draft ~access_token ~app namespace_id message >>= fun draft ->
+  upload_file ~access_token ~app namespace_id content_type filename content >>= function
+    | []      -> return None
+    | file::_ -> attach_file ~access_token ~app namespace_id file.fi_id draft.dr_id >>= fun draft ->
+  send_draft ~access_token ~app namespace_id draft >>= fun draft ->
+  return (Some draft)
+
 (* Calendar APIs *)
 let get_calendars ~access_token ~app namespace_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/calendars") in
