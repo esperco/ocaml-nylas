@@ -176,12 +176,19 @@ type draft_send = {
   version  : draft_version;
 } <ocaml field_prefix="ds_">
 
+(** The object that specifies which version of a draft to delete in a
+ *  DELETE request.
+ *)
+type draft_delete = {
+  version : draft_version
+} <ocaml field_prefix="dd_">
+
 type calendar = {
-  ?description              : string option;
-  event_ids                 : event_id list;
-  id                        : calendar_id;
-  name                      : string;
-  (* TODO: Figure out why this is "namespace" and not "namespace_id". *)
+    ?description              : string option;
+    event_ids                 : event_id list;
+    id                        : calendar_id;
+    name                      : string;
+    (* TODO: Figure out why this is "namespace" and not "namespace_id". *)
   namespace                 : namespace_id;
   ?obj <json name="object"> : object_type option;
   read_only                 : bool
