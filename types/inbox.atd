@@ -184,11 +184,11 @@ type draft_delete = {
 } <ocaml field_prefix="dd_">
 
 type calendar = {
-    ?description              : string option;
-    event_ids                 : event_id list;
-    id                        : calendar_id;
-    name                      : string;
-    (* TODO: Figure out why this is "namespace" and not "namespace_id". *)
+  ?description              : string option;
+  event_ids                 : event_id list;
+  id                        : calendar_id;
+  name                      : string;
+  (* TODO: Figure out why this is "namespace" and not "namespace_id". *)
   namespace                 : namespace_id;
   ?obj <json name="object"> : object_type option;
   read_only                 : bool
