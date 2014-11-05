@@ -124,12 +124,13 @@ type message_list = message list
 
 (** An object that specifies a message to create or update---it has no id. *)
 type message_edit = {
-  ~subject              : string;
+  ?subject              : string option;
   ~to_ <json name="to"> : participant list;
   ~cc                   : participant list;
   ~bcc                  : participant list;
   ~body                 : string;
   ~file_ids             : file_id list;
+  ?thread_id            : thread_id option
 } <ocaml field_prefix="me_">
 
 type draft = {

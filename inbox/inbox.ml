@@ -117,7 +117,16 @@ let create_draft ~access_token ~app namespace_id message =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts") in
   call_parse ~access_token ~body `POST Inbox_j.draft_of_string uri
 
-(** Updates the *latest version* of the given file. *)
+(** Create a draft with the given message, replying to the specified
+ *  thread. This clears the message's subject, because messages
+ *  replying to a thread have their subject set automatically by the
+ *  Inbox API.
+ *)
+let reply_draft ~access_token ~app namespace_id thread_id message =
+  let message = { message with me_subject = None; me_thread_id = Some thread_id } in
+  create_draft ~access_token ~app namespace_id message
+
+  (** Updates the *latest version* of the given file. *)
 let update_draft ~access_token ~app namespace_id draft_id draft_edit =
   get_draft ~access_token ~app namespace_id draft_id >>= fun { dr_version } ->
   let draft_edit = { draft_edit with de_version = Some dr_version } in
