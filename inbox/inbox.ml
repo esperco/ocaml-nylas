@@ -110,6 +110,14 @@ let get_raw_message_mime ~access_token ~app namespace_id message_id =
   let input = new Nlstream.input_stream (new Nlchannels.input_string str) in
   return (Nlmime.read_mime_message input)
 
+(** Gets the global Message-id, if one exists. *)
+let get_message_id_mime ~access_token ~app namespace_id message_id =
+  get_raw_message_mime ~access_token ~app namespace_id message_id >>= fun (headers, _) ->
+  let id =
+    try Some (List.assoc "Message-Id" headers#fields) with Not_found -> None
+  in
+  return id
+
 let get_thread_messages ~access_token ~app namespace_id thread =
   get_messages ~access_token ~app namespace_id [`Thread_id thread.tr_id]
 
