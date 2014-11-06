@@ -104,6 +104,12 @@ let get_raw_message ~access_token ~app namespace_id message_id =
   get_raw_message_64 ~access_token ~app namespace_id message_id >>= fun { mr_rfc2822 } ->
   return (Base64.decode mr_rfc2822)
 
+(** Gets the raw message and parses it into a `complex_mime_message'. *)
+let get_raw_message_mime ~access_token ~app namespace_id message_id =
+  get_raw_message ~access_token ~app namespace_id message_id >>= fun str ->
+  let input = new Nlstream.input_stream (new Nlchannels.input_string str) in
+  return (Nlmime.read_mime_message input)
+
 let get_thread_messages ~access_token ~app namespace_id thread =
   get_messages ~access_token ~app namespace_id [`Thread_id thread.tr_id]
 
