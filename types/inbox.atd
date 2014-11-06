@@ -133,6 +133,13 @@ type message_edit = {
   ?thread_id            : thread_id option
 } <ocaml field_prefix="me_">
 
+(** An object that only contains the body of an email message, encoded
+ *  as a base 64 string.
+ *)
+type message_raw = {
+  rfc2822 : string
+} <ocaml field_prefix="mr_">
+
 type draft = {
   id                        : draft_id;
   ?obj <json name="object"> : object_type option;

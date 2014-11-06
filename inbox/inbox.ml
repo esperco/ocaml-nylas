@@ -94,15 +94,29 @@ let get_message ~access_token ~app namespace_id message_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/messages/" ^ message_id) in
   call_parse ~access_token `GET Inbox_j.message_of_string uri
 
-(** Returns the rfc2822 message as a base-64 encoded string. *)
+(** Returns the rfc2822 message, which is encoded as a base-64 string. *)
 let get_raw_message_64 ~access_token ~app namespace_id message_id =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/messages/" ^ message_id ^ "/rfc2822") in
-  call_parse ~access_token `GET (fun x -> x) uri
+  call_parse ~access_token `GET Inbox_j.message_raw_of_string uri
 
 (** Gets the raw message as a normal string. *)
 let get_raw_message ~access_token ~app namespace_id message_id =
-  get_raw_message_64 ~access_token ~app namespace_id message_id >>= fun message ->
-  return (Base64.decode message)
+  get_raw_message_64 ~access_token ~app namespace_id message_id >>= fun { mr_rfc2822 } ->
+  return (Base64.decode mr_rfc2822)
+
+(** Gets the raw message and parses it into a `complex_mime_message'. *)
+let get_raw_message_mime ~access_token ~app namespace_id message_id =
+  get_raw_message ~access_token ~app namespace_id message_id >>= fun str ->
+  let input = new Nlstream.input_stream (new Nlchannels.input_string str) in
+  return (Nlmime.read_mime_message input)
+
+(** Gets the global Message-id, if one exists. *)
+let get_message_id_mime ~access_token ~app namespace_id message_id =
+  get_raw_message_mime ~access_token ~app namespace_id message_id >>= fun (headers, _) ->
+  let id =
+    try Some (List.assoc "Message-Id" headers#fields) with Not_found -> None
+  in
+  return id
 
 let get_thread_messages ~access_token ~app namespace_id thread =
   get_messages ~access_token ~app namespace_id [`Thread_id thread.tr_id]
