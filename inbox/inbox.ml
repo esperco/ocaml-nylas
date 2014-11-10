@@ -36,7 +36,7 @@ let call_string http_method ?access_token ?headers ?body uri =
   in
   let headers = Header.of_list headers in 
   Client.call ~headers ?body http_method uri >>= fun (response, body) ->
-  match response.Client.Response.status, body with
+  match response.Cohttp.Response.status, body with
   | `OK, `Stream body -> Lwt_stream.fold (^) body ""
   | `OK, `Empty       -> return ""
   | err, `Stream body -> Lwt_stream.fold (^) body ""
