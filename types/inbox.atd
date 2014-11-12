@@ -228,7 +228,7 @@ type time = {
   ?obj <json name="object"> : object_type option;
   (* TODO: Use a specific time type. *)
   time                      : int;
-} <ocaml field_prefix="ts_">
+} <ocaml field_prefix="t_">
 
 type timespan = {
   ?obj <json name="object"> : object_type option;
