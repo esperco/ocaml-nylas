@@ -37,8 +37,19 @@ type object_type = [
   | Namespace <json name="namespace">
   | Calendar <json name="calendar">
   | Event <json name="event">
+  | Time <json name="time">
   | Timespan <json name="timespan">
+  | Datespan <json name="datespan">
+  | Date <json name="date">
   | File <json name="file">
+]
+
+(** These are the types specific to "when" fields. *)
+type time_type = [
+    Time <json name="time">
+  | Timespan <json name="timespan">
+  | Datespan <json name="datespan">
+  | Date <json name="date">
 ]
 
 type event_status = [
@@ -203,6 +214,9 @@ type calendar = {
 
 type calendar_list = calendar list
 
+(* TODO: Figure out a better representation? Maybe. *)
+type day = string
+
 type event_participant = {
   email  : email;
   id     : event_participant_id;
@@ -210,12 +224,51 @@ type event_participant = {
   status : event_status
 } <ocaml field_prefix="ep_">
 
+type time = {
+  ?obj <json name="object"> : object_type option;
+  (* TODO: Use a specific time type. *)
+  time                      : int;
+} <ocaml field_prefix="t_">
+
 type timespan = {
   ?obj <json name="object"> : object_type option;
   (* TODO                   : Use a specific time type. *)
   start_time                : int;
   end_time                  : int;
 } <ocaml field_prefix="ts_">
+
+type date = {
+  ?obj <json name="object"> : object_type option;
+  start_date                : day
+} <ocaml field_prefix="d_">
+
+type datespan = {
+  ?obj <json name="object"> : object_type option;
+  start_date                : day;
+  end_date                  : day;
+} <ocaml field_prefix="ds_">
+
+(** The four possible time objects, neatly sanitized. *)
+type times = [
+    Time of time <json name="time">
+  | Timespan of timespan <json name="timespan">
+  | Datespan of datespan <json name="datespan">
+  | Date of date <json name="date">
+]
+
+(** This type captures times, timespans, dates and datespans all in
+ *  one. Right now, it's a bit awkward until we get good support for
+ *  parsing this sort of "sum of products" case, like dsheet's PR does for
+ *  products of sums.
+ *)
+type some_time = {
+  ?obj <json name="object"> : time_type option;
+  ?time                     : int option;
+  ?start_time               : int option;
+  ?end_time                 : int option;
+  ?start_date               : day option;
+  ?end_date                 : day option;
+} <ocaml field_prefix="st_">
 
 type event = {
   ?obj <json name="object"> : object_type option;
@@ -227,7 +280,7 @@ type event = {
   participants              : event_participant list;
   read_only                 : bool;
   title                     : string;
-  when_ <json name="when">  : timespan 
+  when_ <json name="when">  : some_time 
 } <ocaml field_prefix="ev_">
 
 type event_list = event list
