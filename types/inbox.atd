@@ -277,9 +277,9 @@ type event = {
   namespace_id              : namespace_id;
   ?description              : string option;
   ?location                 : string option;
-  participants              : event_participant list;
-  read_only                 : bool;
-  title                     : string;
+  ~participants             : event_participant list;
+  ~read_only                : bool;
+  ?title                    : string option;
   when_ <json name="when">  : some_time 
 } <ocaml field_prefix="ev_">
 
