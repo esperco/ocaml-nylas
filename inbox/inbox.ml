@@ -240,3 +240,30 @@ let get_events ~access_token ~app namespace_id filters =
     Filter.add_query filters (api_path app ("/n/" ^ namespace_id ^ "/events"))
   in
   call_parse ~access_token `GET Inbox_j.event_list_of_string uri
+
+let create_event ~access_token ~app namespace_id event_edit =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/events") in
+  let body = Inbox_j.string_of_event_edit event_edit in
+  call_parse ~access_token ~body `POST Yojson.Safe.from_string uri
+
+let update_event ~access_token ~app namespace_id event_id event_edit =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/events/" ^ event_id) in
+  let body = Inbox_j.string_of_event_edit event_edit in
+  call_parse ~access_token ~body `PUT Yojson.Safe.from_string uri
+
+(* Delta Sync *)
+let delta_sync_start ~access_token ~app namespace_id timestamp =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/delta/generate_cursor") in
+  let body = Inbox_j.string_of_start_time { start = timestamp } in
+  call_parse ~access_token ~body `POST Inbox_j.cursor_response_of_string uri
+
+let delta_sync_update ~access_token ~app namespace_id ?(exclude = []) cursor =
+  let base = api_path app ("/n/" ^ namespace_id ^ "/delta") in
+  let with_cursor = Uri.add_query_params' base ["cursor", cursor] in
+  let uri =
+    if exclude = [] then with_cursor
+    else
+      let filter = String.concat "," exclude in
+      Uri.add_query_params' with_cursor ["exclude_types", filter]
+  in
+  call_parse ~access_token `GET Inbox_j.delta_page_of_string uri

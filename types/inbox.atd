@@ -266,6 +266,7 @@ type some_time = {
   ?time                     : int option;
   ?start_time               : int option;
   ?end_time                 : int option;
+  ?date                     : day option;
   ?start_date               : day option;
   ?end_date                 : day option;
 } <ocaml field_prefix="st_">
@@ -284,3 +285,56 @@ type event = {
 } <ocaml field_prefix="ev_">
 
 type event_list = event list
+
+type event_edit = {
+  ?calendar_id              : calendar_id option;
+  ?description              : string option;
+  ?location                 : string option;
+  ?participants             : event_participant list option;
+  ?title                    : string option;
+  ?when_ <json name="when"> : some_time option;
+} <ocaml field_prefix="ew_">
+
+type cursor = string
+
+(* Initial delta sync request. *)
+type start_time = {
+  start : timestamp;
+}
+
+(* Initial delta sync response. *)
+type cursor_response = {
+  cursor : cursor;
+}
+
+(* A page of deltas, starting from a cursor value we supply.
+   We can use cursor_end as the starting value for the next page,
+   until we get a response where cursor_start = cursor_end. *)
+type delta_page = {
+  cursor_start : cursor;
+  cursor_end : cursor;
+  ~deltas : delta list;
+}
+
+type delta_event = [
+  | Create <json name="create">
+  | Modify <json name="modify">
+  | Delete <json name="delete">
+]
+
+(* An change event that occurred on an Inbox resource. *)
+type delta = {
+  cursor : cursor; (* The cursor value for this delta. *)
+  event : delta_event;
+  obj <json name="object"> : object_type;
+  id : string;
+    (* The ID of the changed object. Its wrapper type depends on
+       the object_type, so we use string here. *)
+  ?attributes : json option;
+    (* The state of the object when the delta was generated. *)
+}
+
+(* XXX Remove when we know what the contents of the "attributes"
+       field above will be, probably based on the "type" field.
+       The documentation is not very clear here. *)
+type json <ocaml module="Json"> = abstract
