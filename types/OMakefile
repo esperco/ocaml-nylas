@@ -1,4 +1,5 @@
 FILES[] = 
+  json
   inbox_t
   inbox_j
   inbox_v
