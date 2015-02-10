@@ -12,8 +12,8 @@ open Nlencoding
 exception Error_code of Cohttp.Code.status_code
 
 (** Default URIs, suitable for hosted Inbox instances. *)
-let api_uri  = Uri.of_string "https://api.inboxapp.com"
-let base_uri = Uri.of_string "https://www.inboxapp.com"
+let api_uri  = Uri.of_string "https://api.nilas.com"
+let base_uri = Uri.of_string "https://www.nilas.com"
 
 let api_path { api_uri } path = Uri.with_path api_uri path
 
@@ -35,19 +35,32 @@ let call_string http_method ?access_token ?headers ?body uri =
     | None       -> headers
   in
   let headers = Header.of_list headers in 
+  (match body with
+  | None -> return ""
+  | Some b -> Cohttp_lwt_body.to_string b
+  ) >>= fun b ->
+  Printf.eprintf "Making Inbox API call: %s%s\n%!"
+    (Uri.to_string uri) b;
   Client.call ~headers ?body http_method uri >>= fun (response, body) ->
   match response.Cohttp.Response.status, body with
-  | `OK, body -> Cohttp_lwt_body.to_string body
-  | err, body -> Cohttp_lwt_body.to_string body
-
+  | `OK, body ->
+      Cohttp_lwt_body.to_string body >>= fun s ->
+      Printf.eprintf "Inbox API call succeeded with response: %s\n%!" s;
+      return (Some s)
+  | err, body ->
+      Cohttp_lwt_body.to_string body >>= fun s ->
+      Printf.eprintf "Inbox API call failed with error %d: %s\n%!"
+        (Cohttp.Code.code_of_status err) s;
+      return None
 
 let call_parse http_method parse_fn ?access_token ?headers ?body uri =
   let body = match body with
     | None      -> None
     | Some body -> Some (Cohttp_lwt_body.of_string body)
   in
-  call_string ?access_token ?headers ?body http_method uri >>= fun response ->
-  Lwt.return (parse_fn response)
+  call_string ?access_token ?headers ?body http_method uri >>= function
+  | None -> return None
+  | Some response -> return (Some (parse_fn response))
 
 let post_authentication_code app code =
   (* NOTE: The leading slash in /oauth/token is necessary. *)
@@ -100,22 +113,27 @@ let get_raw_message_64 ~access_token ~app namespace_id message_id =
 
 (** Gets the raw message as a normal string. *)
 let get_raw_message ~access_token ~app namespace_id message_id =
-  get_raw_message_64 ~access_token ~app namespace_id message_id >>= fun { mr_rfc2822 } ->
-  return (Base64.decode mr_rfc2822)
+  get_raw_message_64 ~access_token ~app namespace_id message_id >>= function
+  | None -> return None
+  | Some { mr_rfc2822 } -> return (Some (Base64.decode mr_rfc2822))
 
 (** Gets the raw message and parses it into a `complex_mime_message'. *)
 let get_raw_message_mime ~access_token ~app namespace_id message_id =
-  get_raw_message ~access_token ~app namespace_id message_id >>= fun str ->
-  let input = new Nlstream.input_stream (new Nlchannels.input_string str) in
-  return (Nlmime.read_mime_message input)
+  get_raw_message ~access_token ~app namespace_id message_id >>= function
+  | None -> return None
+  | Some str ->
+      let input = new Nlstream.input_stream (new Nlchannels.input_string str) in
+      return (Some (Nlmime.read_mime_message input))
 
 (** Gets the global Message-id, if one exists. *)
 let get_message_id_mime ~access_token ~app namespace_id message_id =
-  get_raw_message_mime ~access_token ~app namespace_id message_id >>= fun (headers, _) ->
-  let id =
-    try Some (List.assoc "Message-Id" headers#fields) with Not_found -> None
-  in
-  return id
+  get_raw_message_mime ~access_token ~app namespace_id message_id >>= function
+  | None -> return None
+  | Some (headers, _) ->
+      let id =
+        try Some (List.assoc "Message-Id" headers#fields) with Not_found -> None
+      in
+      return id
 
 let get_thread_messages ~access_token ~app namespace_id thread =
   get_messages ~access_token ~app namespace_id [`Thread_id thread.tr_id]
@@ -151,19 +169,23 @@ let reply_draft ~access_token ~app namespace_id thread_id message =
 
 (** Updates the *latest version* of the given file. *)
 let update_draft ~access_token ~app namespace_id draft_id draft_edit =
-  get_draft ~access_token ~app namespace_id draft_id >>= fun { dr_version } ->
-  let draft_edit = { draft_edit with de_version = Some dr_version } in
-  let body = Inbox_j.string_of_draft_edit draft_edit in
-  let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts/" ^ draft_id) in
-  call_parse ~access_token ~body `PUT Inbox_j.draft_of_string uri
+  get_draft ~access_token ~app namespace_id draft_id >>= function
+  | None -> return None
+  | Some { dr_version } ->
+      let draft_edit = { draft_edit with de_version = Some dr_version } in
+      let body = Inbox_j.string_of_draft_edit draft_edit in
+      let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts/" ^ draft_id) in
+      call_parse ~access_token ~body `PUT Inbox_j.draft_of_string uri
 
 (** Deletes the latest version of the specified draft. *)
 let delete_draft ~access_token ~app namespace_id draft_id =
-  get_draft ~access_token ~app namespace_id draft_id >>= fun draft ->
-  let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts/" ^ draft_id) in
-  let dd = Inbox_v.create_draft_delete ~dd_version:draft.dr_version () in
-  let body = Inbox_j.string_of_draft_delete dd in
-  call_parse ~access_token ~body `DELETE (fun x -> x) uri
+  get_draft ~access_token ~app namespace_id draft_id >>= function
+  | None -> return None
+  | Some draft ->
+      let uri = api_path app ("/n/" ^ namespace_id ^ "/drafts/" ^ draft_id) in
+      let dd = Inbox_v.create_draft_delete ~dd_version:draft.dr_version () in
+      let body = Inbox_j.string_of_draft_delete dd in
+      call_parse ~access_token ~body `DELETE (fun x -> x) uri
 
 let send_draft ~access_token ~app namespace_id draft =
   let body = Inbox_j.string_of_draft_send {
@@ -206,21 +228,29 @@ let upload_file ~access_token ~app namespace_id content_type filename content =
   call_parse ~access_token ~headers ~body `POST Inbox_j.file_list_of_string uri
 
 let attach_file ~access_token ~app namespace_id file_id draft_id =
-  get_draft ~access_token ~app namespace_id draft_id >>= fun { dr_files } ->
-  let file_ids = List.map (fun { fi_id } -> fi_id) dr_files in
-  let draft_edit =
-    Inbox_v.create_draft_edit ~de_file_ids:(file_id::file_ids) ()
-  in
-  update_draft ~access_token ~app namespace_id draft_id draft_edit
+  get_draft ~access_token ~app namespace_id draft_id >>= function
+  | None -> return None
+  | Some { dr_files } ->
+      let file_ids = List.map (fun { fi_id } -> fi_id) dr_files in
+      let draft_edit =
+        Inbox_v.create_draft_edit ~de_file_ids:(file_id::file_ids) ()
+      in
+      update_draft ~access_token ~app namespace_id draft_id draft_edit
 
 (* TODO: Better error handling. *)
 let send_with_file ~access_token ~app namespace_id message content_type filename content =
-  create_draft ~access_token ~app namespace_id message >>= fun draft ->
-  upload_file ~access_token ~app namespace_id content_type filename content >>= function
-    | []      -> return None
-    | file::_ -> attach_file ~access_token ~app namespace_id file.fi_id draft.dr_id >>= fun draft ->
-  send_draft ~access_token ~app namespace_id draft >>= fun draft ->
-  return (Some draft)
+  create_draft ~access_token ~app namespace_id message >>= function
+  | None -> return None
+  | Some draft ->
+      upload_file ~access_token ~app namespace_id content_type filename content >>= function
+      | None | Some [] -> return None
+      | Some (file :: _) ->
+          attach_file ~access_token ~app namespace_id file.fi_id draft.dr_id >>= function
+          | None -> return None
+          | Some draft ->
+              send_draft ~access_token ~app namespace_id draft >>= function
+              | None -> return None
+              | x -> return x
 
 (* Calendar APIs *)
 let get_calendars ~access_token ~app namespace_id =
@@ -244,12 +274,16 @@ let get_events ~access_token ~app namespace_id filters =
 let create_event ~access_token ~app namespace_id event_edit =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/events") in
   let body = Inbox_j.string_of_event_edit event_edit in
-  call_parse ~access_token ~body `POST Yojson.Safe.from_string uri
+  call_parse ~access_token ~body `POST Inbox_j.event_of_string uri
 
 let update_event ~access_token ~app namespace_id event_id event_edit =
   let uri = api_path app ("/n/" ^ namespace_id ^ "/events/" ^ event_id) in
   let body = Inbox_j.string_of_event_edit event_edit in
   call_parse ~access_token ~body `PUT Yojson.Safe.from_string uri
+
+let delete_event ~access_token ~app namespace_id event_id =
+  let uri = api_path app ("/n/" ^ namespace_id ^ "/events/" ^ event_id) in
+  call_parse ~access_token `DELETE Yojson.Safe.from_string uri
 
 (* Delta Sync *)
 let delta_sync_start ~access_token ~app namespace_id timestamp =
