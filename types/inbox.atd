@@ -218,9 +218,9 @@ type calendar_list = calendar list
 type day = string
 
 type event_participant = {
-  ?email  : email option;
+  email  : email;
   ?id    : event_participant_id option;
-  ?name   : string option;
+  name   : string;
   status : event_status
 } <ocaml field_prefix="ep_">
 
