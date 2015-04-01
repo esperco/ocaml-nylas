@@ -10,7 +10,7 @@ type t = {
 }
 
 let make_hosted ~app_id ~app_secret = {
-  api_uri  = Uri.of_string "https://api.inboxapp.com";
-  base_uri = Uri.of_string "https://www.inboxapp.com";
+  api_uri  = Uri.of_string "https://api.nilas.com";
+  base_uri = Uri.of_string "https://www.nilas.com";
   app_id; app_secret
 }
