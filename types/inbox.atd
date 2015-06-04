@@ -53,6 +53,12 @@ type time_type = [
 ]
 
 type event_status = [
+    Confirmed <json name="confirmed">
+  | Tentative <json name="tentative">
+  | Cancelled <json name="cancelled">
+]
+
+type reply_status = [
     Yes <json name="yes">
   | No <json name="no">
   | Maybe <json name="maybe">
@@ -221,7 +227,7 @@ type event_participant = {
   ?email  : email option;
   ?id    : event_participant_id option;
   ?name   : string option;
-  status : event_status
+  status : reply_status;
 } <ocaml field_prefix="ep_">
 
 type time = {
@@ -280,9 +286,16 @@ type event = {
   ?location                 : string option;
   ~participants             : event_participant list;
   ~read_only                : bool;
+  ?recurrence               : recurrence option;
+  ?status                   : event_status option;
   ?title                    : string option;
   when_ <json name="when">  : some_time 
 } <ocaml field_prefix="ev_">
+
+type recurrence = {
+  ~rrule : string list;
+  ?timezone : string option;
+} <ocaml field_prefix="re_">
 
 type event_list = event list
 

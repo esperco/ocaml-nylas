@@ -39,17 +39,17 @@ let call_string http_method ?access_token ?headers ?body uri =
   | None -> return ""
   | Some b -> Cohttp_lwt_body.to_string b
   ) >>= fun b ->
-  Printf.eprintf "Making Inbox API call: %s%s\n%!"
-    (Uri.to_string uri) b;
+  Printf.eprintf "Making Nylas API call: %s %s %s\n%!"
+    (Uri.to_string uri) (Cohttp.Code.string_of_method http_method) b;
   Client.call ~headers ?body http_method uri >>= fun (response, body) ->
   match response.Cohttp.Response.status, body with
   | `OK, body ->
       Cohttp_lwt_body.to_string body >>= fun s ->
-      Printf.eprintf "Inbox API call succeeded with response: %s\n%!" s;
+      Printf.eprintf "Nylas API call succeeded with response: %s\n%!" s;
       return (Some s)
   | err, body ->
       Cohttp_lwt_body.to_string body >>= fun s ->
-      Printf.eprintf "Inbox API call failed with error %d: %s\n%!"
+      Printf.eprintf "Nylas API call failed with error %d: %s\n%!"
         (Cohttp.Code.code_of_status err) s;
       return None
 
