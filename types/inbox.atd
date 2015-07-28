@@ -287,6 +287,8 @@ type event = {
   ~participants             : event_participant list;
   ~read_only                : bool;
   ?recurrence               : recurrence option;
+  ?master_event_id          : event_id option;
+  ?original_start_time      : int option;
   ?status                   : event_status option;
   ?title                    : string option;
   when_ <json name="when">  : some_time 
