@@ -26,7 +26,8 @@ type timestamp = int
 type authentication_result = {
   ?access_token : access_token option;
   ?error        : string option;
-  ?reason       : string option
+  ?reason       : string option;
+  email_address : string;
 }
 
 (** An annotation that specifies what type of object the returned JSON represents. *)

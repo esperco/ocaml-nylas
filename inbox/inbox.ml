@@ -12,8 +12,8 @@ open Nlencoding
 exception Error_code of Cohttp.Code.status_code
 
 (** Default URIs, suitable for hosted Inbox instances. *)
-let api_uri  = Uri.of_string "https://api.nilas.com"
-let base_uri = Uri.of_string "https://www.nilas.com"
+let api_uri  = Uri.of_string "https://api.nylas.com"
+let base_uri = Uri.of_string "https://www.nylas.com"
 
 let api_path { api_uri } path = Uri.with_path api_uri path
 
