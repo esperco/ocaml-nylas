@@ -13,12 +13,11 @@ exception Error_code of Cohttp.Code.status_code
 
 (** Default URIs, suitable for hosted Inbox instances. *)
 let api_uri  = Uri.of_string "https://api.nylas.com"
-let base_uri = Uri.of_string "https://www.nylas.com"
 
 let api_path { api_uri } path = Uri.with_path api_uri path
 
 let authentication_uri app user_email redirect_uri =
-  let uri = Uri.with_path app.base_uri "oauth/authorize" in
+  let uri = Uri.with_path app.api_uri "oauth/authorize" in
   Uri.add_query_params' uri [
     ("client_id", app.app_id);
     ("response_type", "code");
@@ -64,7 +63,7 @@ let call_parse http_method parse_fn ?access_token ?headers ?body uri =
 
 let post_authentication_code app code =
   (* NOTE: The leading slash in /oauth/token is necessary. *)
-  let base = Uri.with_path app.base_uri "/oauth/token" in
+  let base = Uri.with_path app.api_uri "/oauth/token" in
   let uri  = Uri.add_query_params' base [
       ("client_id", app.app_id);
       ("client_secret", app.app_secret);

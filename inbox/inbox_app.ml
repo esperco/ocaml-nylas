@@ -4,13 +4,11 @@
  *)
 type t = {
   api_uri    : Uri.t;
-  base_uri   : Uri.t;
   app_id     : string;
   app_secret : string;
 }
 
 let make_hosted ~app_id ~app_secret = {
   api_uri  = Uri.of_string "https://api.nylas.com";
-  base_uri = Uri.of_string "https://www.nylas.com";
   app_id; app_secret
 }
