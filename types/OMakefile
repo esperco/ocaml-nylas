@@ -1,15 +1,15 @@
-FILES[] = 
+FILES[] =
   json
-  inbox_t
-  inbox_j
-  inbox_v
+  nylas_t
+  nylas_j
+  nylas_v
   time
 
-Atdgen(inbox, -j-std)
-OCamlLibrary(inbox-core, $(FILES))
+Atdgen(nylas, -j-std)
+OCamlLibrary(nylas-core, $(FILES))
 
-.DEFAULT: inbox-core.cma inbox-core.cmxa
+.DEFAULT: nylas-core.cma nylas-core.cmxa
 
 .PHONY: clean
 clean:
-  rm -f *.o *.a *.cm* *~ *.annot *.run *.opt
+  rm -f *.o *.a *.cm* *~ *.annot *.run *.opt *_[tjv].*

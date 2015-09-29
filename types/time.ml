@@ -1,4 +1,4 @@
-open Inbox_t
+open Nylas_t
 
 exception Malformed_time of [ time_type | `Some_time ]
 

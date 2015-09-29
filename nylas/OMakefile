@@ -1,0 +1,15 @@
+FILES[] =
+  nylas
+  nylas_app
+  filter
+  multipart
+
+OCAML_LIBS = ../types/nylas-core
+
+OCamlLibrary(nylas, $(FILES))
+
+.DEFAULT: nylas.cma nylas.cmxa
+
+.PHONY: clean
+clean:
+  rm -f *.o *.a *.cm* *~ *.annot *.run *.opt

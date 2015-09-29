@@ -1,3 +1,3 @@
-# OCaml Inbox Client
+# OCaml Nylas Client
 
-A basic OCaml client for the Inbox API.
+A basic OCaml client for the [Nylas](https://nylas.com/) API.

@@ -11,7 +11,7 @@ SUBDIRS[] =
   # atds
   types
   # actual API calls
-  inbox
+  nylas
 
 OCAMLINCLUDES = $(absname $(SUBDIRS))
 
@@ -19,6 +19,6 @@ OCAMLINCLUDES = $(absname $(SUBDIRS))
 
 .PHONY: install uninstall reinstall
 install:
-  ocamlfind install ocaml-inbox META */*.{mli,cmi,cmo,cmx,o,cma,cmxa,a}
+  ocamlfind install ocaml-nylas META */*.{mli,cmi,cmo,cmx,o,cma,cmxa,a}
 uninstall:
-  ocamlfind remove ocaml-inbox
+  ocamlfind remove ocaml-nylas
