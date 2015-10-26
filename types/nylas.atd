@@ -2,7 +2,6 @@
 
 (* TODO: wrapper types for ids and such *)
 type thread_id            = string
-type namespace_id         = string
 type account_id           = string
 type tag_id               = string
 type message_id           = string
@@ -35,7 +34,7 @@ type object_type = [
     Thread <json name="thread">
   | Message <json name="message">
   | Draft <json name="draft">
-  | Namespace <json name="namespace">
+  | Account <json name="account">
   | Calendar <json name="calendar">
   | Event <json name="event">
   | Time <json name="time">
@@ -74,17 +73,14 @@ type draft_state = [
   | Sent <json name="sent">
 ]
 
-type namespace = {
-  id                        : namespace_id;
+type account = {
+  id                        : account_id;
   ?obj <json name="object"> : object_type option;
-  namespace_id              : namespace_id;
   account_id                : account_id;
   email_address             : email;
   provider                  : provider;
   name                      : string
 } <ocaml field_prefix="ns_">
-
-type namespace_list = namespace list
 
 type participant = {
   name  : string;
@@ -99,7 +95,7 @@ type tag = {
 type thread = {
   id                        : thread_id;
   ?obj <json name="object"> : object_type option;
-  namespace_id              : namespace_id;
+  account_id                : account_id;
   subject                   : string;
   last_message_timestamp    : timestamp;
   first_message_timestamp   : timestamp;
@@ -213,8 +209,7 @@ type calendar = {
   ~event_ids                : event_id list;
   id                        : calendar_id;
   name                      : string;
-  (* TODO: Figure out why this is "namespace" and not "namespace_id". *)
-  namespace_id              : namespace_id;
+  account_id                : account_id;
   ?obj <json name="object"> : object_type option;
   read_only                 : bool
 } <ocaml field_prefix="ca_">
@@ -282,7 +277,7 @@ type event = {
   ?obj <json name="object"> : object_type option;
   id                        : event_id;
   calendar_id               : calendar_id;
-  namespace_id              : namespace_id;
+  account_id                : account_id;
   ?description              : string option;
   ?location                 : string option;
   ~participants             : event_participant list;
